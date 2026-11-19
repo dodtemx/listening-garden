@@ -1,4 +1,4 @@
-﻿/* สวนรับฟัง ฉบับส่งงาน | gcc -std=c11 ListeningGarden.c -o GardenClass.exe
+﻿/* Grow a (Feeling) Garden | gcc -std=c11 ListeningGarden.c -o GardenClass.exe
    บันทึกซอร์สเป็น UTF-8 เพื่อแสดงภาษาไทยและภาพจุด  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -434,11 +434,18 @@ void grow_tree(const Plan *p) {
 
 /* เมนูและลำดับการเล่น */
 /* อ่านทีละบรรทัด ถ้าพิมพ์ผิด ให้เลือกใหม่โดยไม่เสียผลึก */
+/* ใช้หัวข้อรูปแบบเดียวกันทุกหน้าหลัก */
+void heading(const char *title) {
+    printf("\n  ----------------------------------------------------\n");
+    printf("  %s\n", title);
+    printf("  ----------------------------------------------------\n");
+}
+
 int choose(int low, int high) {
     char line[100], extra;
     int answer;
     for (;;) {
-        printf("> ");
+        printf("\n  เลือก > ");
         fflush(stdout);
         if (!fgets(line, sizeof line, stdin)) {
             inputEnded=1;
@@ -452,10 +459,17 @@ int choose(int low, int high) {
 
 void care_notes(void) {
 
-    printf("สุข / ภูมิใจ เลี้ยงใบและดอก     เศร้า / กลัว เลี้ยงราก\n");
-    printf("โกรธ / ผิดหวัง เลี้ยงเปลือก     ผลึกหนึ่งชิ้นให้ 10 หน่วย\n");
-    printf("ผสมผลึกต่างกลุ่มสองชิ้น จะได้ปุ๋ยของกลุ่มที่สาม 10 หน่วย\n");
-    printf("ถ้าอยากเห็นดอก ให้ทั้งสามด้านเท่ากัน ด้านละอย่างน้อย 30\n");
+    printf("  ผลึกแต่ละกลุ่มเลี้ยงส่วนไหน?\n\n");
+    printf("    ใบและดอก  : สุข / ภูมิใจ\n");
+    printf("    ราก       : เศร้า / กลัว\n");
+    printf("    เปลือก    : โกรธ / ผิดหวัง\n\n");
+    printf("  ใช้ตรง      ผลึก 1 ชิ้น เพิ่ม 10 หน่วย\n");
+    printf("  ผสมปุ๋ย     ใช้ผลึกต่างกลุ่ม 2 ชิ้น\n");
+    printf("              เพิ่มให้กลุ่มที่เหลือ 10 หน่วย\n\n");
+    printf("  ถ้าอยากให้ออกดอก\n");
+    printf("    เลี้ยงทั้งสามส่วนให้เท่ากัน\n");
+    printf("    แต่ละส่วนต้องได้อย่างน้อย 30 หน่วย\n");
+
 }
 
 void guide(const Day *day) {
@@ -468,9 +482,11 @@ void meet_customers(const Day *day, Plan *plan) {
 
     for (int i=0; i<VISITS; i++) {
         const Story *s=&stories[day->guest[i]];
-        printf("\n%02d:00  |  %s\n“%s”\n", 9+i, s->name, s->story);
+        heading(s->name);
+        printf("  %02d:00  |  ลูกค้าคนที่ %d / %d\n\n",9+i,i+1,VISITS);
+        printf("“%s”\n\n",s->story);
 
-        printf("1. %s\n2. %s\n3. ถามว่าอยากให้ช่วยอะไร\n",s->question,s->otherQuestion);
+        printf("  [1] %s\n  [2] %s\n  [3] ถามว่าอยากให้ช่วยอะไร\n",s->question,s->otherQuestion);
         int answer=choose(1,3);
         if (inputEnded) return;
         if (answer==3) {
@@ -518,25 +534,38 @@ void show_aunt_ing(void) {
 }
 
 void welcome(void) {
-    printf("สวนรับฟัง\n");
+    printf("\n");
+    printf("  ====================================================\n");
+    printf("               Grow a (Feeling) Garden\n");
+    printf("                       สวนรับฟัง\n");
+    printf("  ====================================================\n\n");
     Plan title_tree={0};
     for (int i=0; i<3; i++) title_tree.value[i]=30;
-    title_tree.count=9; /* ต้นไม้ประดับหน้าเมนู */
+    title_tree.count=9;
     show_tree(&title_tree,NULL);
-    printf("1. เล่นเลย\n");
-    printf("2. รู้จักเกม ดูวิธีเล่นและสูตรผสม\n");
+    printf("       รับฟังเรื่องราว แล้วปลูกสวนจากความรู้สึก\n\n");
+    printf("  ----------------------------------------------------\n");
+    printf("    [1]  เปิดร้าน\n");
+    printf("         เริ่มเรื่องกับป้าอิง\n");
+    printf("    [2]  ก่อนเริ่มปลูก\n");
+    printf("         รู้จักเกม วิธีเล่น และสูตรผสม\n\n");
+    printf("  ----------------------------------------------------\n");
+    printf("  พิมพ์หมายเลข แล้วกด Enter\n");
     if (choose(1,2)!=2) return;
 
-    printf("\nเกมนี้เป็นแนวไหน?\n");
-    printf("คุณเปิดร้านเล็ก ๆ ให้คนแวะมาเล่าเรื่อง แลกกับผลึกความรู้สึก\n");
-    printf("พอร้านปิด ผลึกที่เก็บไว้จะกลายเป็นปริศนา คุณจะใช้มันเลี้ยงต้นไม้ยังไงให้ผ่านคืนนี้?\n");
-    printf("\nวิธีเล่น\n");
-    printf("ตอนเช้า ฟังพยากรณ์จากป้าอิง แล้วเลือกคำถามที่อยากถามลูกค้า\n");
-    printf("ตอนเย็น เลือกใส่ผลึกทีละชนิดหรือผสมเป็นปุ๋ย ลองจัดใหม่ได้จนกว่าจะยืนยันปลูก\n");
+    heading("ก่อนเริ่มปลูก");
+    printf("  เปิดร้านรับฟังเรื่องราวของลูกค้า\n");
+    printf("  เก็บผลึกความรู้สึกมาเลี้ยงต้นไม้ให้ผ่านคืนนี้\n\n");
+    printf("  ตอนเช้า - เปิดร้าน\n");
+    printf("    ฟังพยากรณ์จากป้าอิง\n");
+    printf("    คุยกับลูกค้า แล้วรับผลึกเก็บไว้\n\n");
+    printf("  ตอนเย็น - ดูแลต้นไม้\n");
+    printf("    เลือกใส่ผลึกตรง ๆ หรือไปหน้าผสมปุ๋ย\n");
+    printf("    ย้อนหรือจัดแผนใหม่ได้ ก่อนยืนยันปลูก\n\n");
     care_notes();
     printf("\n1. เปิดหน้าสูตรผสม\n");
     if (!choose(1,1)) return;
-    printf("\nสูตรผสมผลึก\n");
+    heading("สูตรผสมผลึก");
     for (int a=0; a<TYPES; a++) {
         for (int b=a+1; b<TYPES; b++) {
             if (recipe(a,b)) describe(make_move(a,b));
@@ -621,10 +650,11 @@ int mix_fertilizer(Plan *plan) {
 void planting(const Day *day, Plan *plan) {
     int before[STOCK], actions=0;
     while (!inputEnded) {
-        printf("\n17:00  โต๊ะปลูก  •  คืนนี้%s\n",weather[day->weather]);
+        heading("โต๊ะปลูก");
+        printf("  17:00  |  คืนนี้%s\n\n",weather[day->weather]);
         printf("อยากให้ต้นออกดอก เลี้ยงทั้งสามส่วนให้เท่ากัน ด้านละอย่างน้อย 30\n");
-        printf("ใบ %d   ราก %d   เปลือก %d\n",plan->value[0],plan->value[1],plan->value[2]);
-        printf("1. ใส่ปุ๋ย   2. ดูหรือแก้แผน   3. ปลูกและปิดร้าน   4. ผสมปุ๋ย\n");
+        printf("\n  ใบ %d   |   ราก %d   |   เปลือก %d\n\n",plan->value[0],plan->value[1],plan->value[2]);
+        printf("  [1] ใส่ปุ๋ย\n  [2] ดูหรือแก้แผน\n  [3] ปลูกและปิดร้าน\n  [4] ผสมปุ๋ย\n");
         int action=choose(1,4);
         if (inputEnded) return;
         if (action==1) {
@@ -750,7 +780,8 @@ int main(void) {
         Day day;
         Plan plan={0};
         new_day(&day);
-        printf("\nสวนรับฟัง\n08:00  |  ป้าอิงวางห่อกระดาษลงบนเคาน์เตอร์\n");
+        heading("Grow a (Feeling) Garden");
+        printf("  08:00  |  ป้าอิงวางห่อกระดาษลงบนเคาน์เตอร์\n\n");
         show_aunt_ing();
         printf("“ฝากเมล็ดไว้สักคืนนะ วันนี้ใครแวะมาก็ลองฟังเขาดู พอตกเย็นค่อยเอาผลึกที่เขาฝากไว้มาปลูกกัน”\n");
         printf("ป้าอิงวางสมุดดูแลเมล็ดไว้ข้างห่อกระดาษ แล้วชี้ให้ดูพยากรณ์คืนนี้\n");
