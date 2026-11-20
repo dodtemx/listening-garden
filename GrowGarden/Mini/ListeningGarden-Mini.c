@@ -339,6 +339,20 @@ int choose(int low, int high) {
         printf("เลือกเลข %d ถึง %d แล้วกด Enter\n", low, high);
     }
 }
+const char *faces[]={
+    "     ⣀⣠⠴⠶⠤⣄⡀\n   ⢠⠞⢁⣀⣀⣀⡀⠙⢦\n   ⡿⠞⠉     ⠉⠳⣿\n   ⢿  ⌒    ⌒  ⡿\n    ⢳⡀  ⌣   ⡴⠃\n     ⠈⠓⠶⠶⠚⠁\n   ⣠⠖⠋⢹⣀⡏⠙⠲⣄\n  ⡼    ⢸⣿⡇    ⢧\n",
+    "       ⣠⣾⣿⣶⣤\n    ⣠⣾⠿⠋⠉⠛⢻⡄\n   ⢸⠏ ⣀⡀  ⣀⡀ ⡇\n   ⢸   ⠿   ⠿  ⡇\n    ⢧    ⠂   ⡼\n    ⠈⣷⣄⠛⠛⣠⣾⠁\n  ⣠⠞⠋⢻⣉⣉⡟⠙⠳⣄\n ⢰⠃ ⢸⠈⠛⠛⠁⡇  ⠘⡆\n",
+    "     ⣀⣠⣤⣤⣄⣀\n   ⢠⣿⣿⣿⣿⣿⣿⣧\n   ⠘⠿⠿⠿⠿⠿⠿⠿⠋\n      ⡇⠂ ⠂⢸\n      ⠣⡀⠃⢀⠜\n        ⠑⠊\n    ⣠⠞⠉⠛⠉⠳⣄\n   ⢰⠃ ⠸⡀⠏  ⠘⡆\n",
+    "     ⣠⣴⣶⣦⣄\n   ⢀⣿⣿⣿⣿⣿⣿⡀\n   ⢸⣧⣀⣴⣦⣀⣼⡇\n   ⠸⢿⣿⠿⠿⣿⡿⠇\n     ⡇  ⠂ ⢸\n     ⠘⢦⣀⡴⠃\n   ⢀⡴⠃  ⠘⢦⡀\n   ⡼⢀⡏    ⢹⡀⢧\n",
+    "        ⣀⣤⣀\n       ⠘⠿⠿⠃\n    ⣀⡴⠚⠉⠉⠓⢦⣀\n   ⡼⠃ ⣀⡀  ⣀⡀ ⠘⢧\n   ⡇  ⢿⣭⠛⣭⡿  ⢸\n   ⠹⣄  ⠈⠒⠁  ⣠⠏\n    ⠈⠛⠲⠤⠤⠖⠛⠁\n   ⡰⠋⢹⣄⣠⡏⠙⢆\n",
+    "    ⢀⣠⠴⠒⠒⠦⣄\n   ⢰⣿⠋⣠⠞⠉⠙⣷\n   ⢸⣿⠞   ⣀   ⡇\n   ⢸⡇ ⡞⠉⢳⡞⠉⢳\n   ⢸⡇ ⠳⠦⠞⠳⠦⠞\n   ⠈⢷⡀  ⠒  ⡼\n     ⠈⠳⠤⠴⠋\n    ⣠⠞⢦⠛⡴⠳⣄\n",
+    "    ⣀⣠⣶⣶⣄⣀\n   ⢰⣿⣿⣿⣿⣿⣿⡆\n   ⠛⠛⠛⠛⠛⠛⠛⠛\n   ⢸⡄ ⠒   ⠒ ⢠⡇\n    ⡇ ⢀⣀⣀⡀ ⢸\n    ⠻⣄⠘⠛⠃⣠⠟\n   ⣠⡴⠛⠛⠛⠛⠛⢦⣄\n  ⢰⠃ ⣿     ⣿ ⠘⡆\n",
+    "     ⢀⣠⠴⠶⢦⣄\n    ⣰⣿⠏⣠⠖⠲⢿⣧\n   ⢀⣿⡟⠞  ⠂ ⠂⢻\n   ⢸⣿⡇     ⠃ ⢸\n    ⠹⣿⣄   ⠉ ⡴⠃\n      ⠙⢧⣤⠤⠞\n        ⣿⡆\n    ⣠⠞⢻⡟⢦⡴⠳⣄\n",
+    "        ⣠⣾⠋⣠⡀\n     ⣠⣾⣿⣿⣿⣿⣷⡄\n    ⣼⣿⠟⠉⠉⠘⠻⣿⡇\n    ⢸  ⠒⠄ ⠠⠒ ⡇\n     ⡇ ⠂   ⠂ ⡇\n     ⠹⣄ ⠐⠂ ⣠⠏\n      ⠈⠛⠶⠛⠁\n   ⣠⠞⠋⢦⡀⡴⠙⠳⣄\n",
+    "  ✿  ⣀⡤⠖⠓⢦⣀\n    ⡼⢁⣴⠞⠳⢄⠙⣧\n   ⢰⣿⡟⠁    ⠘⢿⣿⡆\n   ⢸⣿⡇ ⠒⠆ ⠰⠒ ⢸⣿⡇\n   ⢸⣿⣧   ⠶   ⣼⣿⡇\n    ⠿⣿⣿⣄⣀⣠⣿⣿⠿\n      ⠈⣸⠉⠉⣇⠁\n    ⡠⠞⠙⠲⠖⠋⠳⢄\n",
+    "      ⣤⣤⣤⣤\n    ⣼⣿⣿⣿⣿⣷\n    ⣿⠟⠉⠉⠻⣿\n   ⢀⡏ ⠒  ⠒ ⢹⡀\n   ⠘⣇    ⠂  ⣸⠃\n    ⠘⢧ ⠒⠒ ⡼⠃\n      ⠘⠳⠞⠃\n   ⣠⠞⠃⣿⣿⠘⠳⣄\n",
+    "    ⣀⡤⠶⠶⠶⢤⣀\n   ⢠⣿⣿⣿⣿⣿⣿⣦\n  ⠾⠿⠿⠿⠿⠿⠿⠿⠷\n    ⢸  ⠂  ⠂ ⡇\n    ⠈⢧   ⠃ ⡼⠁\n      ⠙⢦⣀⡴⠋⣤\n       ⢸⠉⡇  ⠿\n    ⣠⠞⢸⣿⡇⠳⣄\n",
+};
 void meet_customers(const Day *day, Plan *plan) {
     const char *help[]={
         "เล่าต่อสิ ฟังอยู่", "ยังมีเรื่องอะไรอีกไหม ดูท่าจะยังเล่าไม่หมด",
@@ -351,6 +365,7 @@ void meet_customers(const Day *day, Plan *plan) {
     for (int i=0; i<VISITS; i++) {
         const Story *s=&stories[day->guest[i]];
         heading(s->name);
+        printf("%s",faces[day->guest[i]]);
         printf("  %02d:00  |  ลูกค้าคนที่ %d / %d\n\n",9+i,i+1,VISITS);
         int gift=s->type;
         int picks=day->gift[i];
@@ -368,7 +383,6 @@ void meet_customers(const Day *day, Plan *plan) {
         plan->bag[gift]+=picks;
         printf("\n  +--------------------------------------------------+\n");
         printf("    ได้รับผลึก: %s  +%d ชิ้น\n",crystal[gift],picks);
-        printf("    ในคลังตอนนี้: %s  %d ชิ้น\n",crystal[s->type],plan->bag[s->type]);
         printf("  +--------------------------------------------------+\n");
         printf(i+1<VISITS ? "  กด Enter เพื่อรับลูกค้าคนถัดไป\n"
                           : "  กด Enter เพื่อไปโต๊ะปลูก\n");
@@ -396,7 +410,7 @@ void show_aunt_ing(void) {
 }
 
 void inventory(const Plan *p) {
-    for (int i=0;i<TYPES;i++) printf("  [%d] %s (%d ชิ้น)\n",i+1,crystal[i],p->bag[i]);
+    for (int i=0;i<TYPES;i++) printf("  [%d] %s (%d ชิ้น) → %s +10 เมื่อใช้ตรง\n",i+1,crystal[i],p->bag[i],part[i/2]);
 }
 void add_fertilizer(Plan *p, int mixing) {
     inventory(p);
@@ -525,19 +539,37 @@ void morning(const Day *day,const Plan *p) {
     printf("\n  ----------------------------------------------------\n");
 }
 
+void how_to_play(void) {
+    heading("วิธีเล่น");
+    printf("คุยกับลูกค้า 8 คน เลือกคำถามเพื่อรับผลึก\n");
+    printf("สุข/ภูมิใจ บำรุงใบ | เศร้า/กลัว บำรุงราก | โกรธ/ผิดหวัง บำรุงเปลือก\n");
+    printf("ใช้ตรง 1 ผลึก เพิ่ม 10 หน่วยให้กลุ่มของตัวเอง\n");
+    printf("ผสม 2 ผลึกต่างกลุ่ม เพิ่ม 10 หน่วยให้กลุ่มที่เหลือ\n");
+    printf("เช่น สุข + กลัว เพิ่มเปลือก 10 หน่วย\n");
+    printf("ดูพยากรณ์ก่อนปลูก ทุกส่วนต้องมีอย่างน้อย 10 และสุขภาพต้องเหลือจึงจะรอด\n");
+    printf("ให้ออกดอก: เติมครบตามเป้าบนโต๊ะปลูกและรักษาสุขภาพให้เต็ม\n");
+    printf("กด Enter กลับหน้าแรก\n");
+    wait_enter();
+}
+
 int main(void) {
 #ifdef _WIN32
     system("chcp 65001 >nul");
 #endif
     srand((unsigned)time(NULL));
-    heading("Grow a (Feeling) Garden — Mini");
+    heading("Grow a (Feeling) Garden");
     Plan title={0};
     title.count=1;
     for (int g=0;g<3;g++) title.value[g]=30;
     show_tree(&title,NULL);
     printf("รับฟังเรื่องราว แล้วปลูกสวนจากความรู้สึก\n");
-    printf("[1] เริ่มเล่น (เปิดร้าน)  [0] ออกจากเกม\n");
-    if (!choose(0,1)) return 0;
+    while (!inputEnded) {
+        printf("[1] เริ่มเล่น (เปิดร้าน)  [2] วิธีเล่น  [0] ออกจากเกม\n");
+        int action=choose(0,2);
+        if (action==0) return 0;
+        if (action==1) break;
+        how_to_play();
+    }
     while (!inputEnded) {
         Day day={0};
         Plan plan={0};
