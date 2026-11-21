@@ -1,26 +1,26 @@
 ﻿#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#define TYPES 6
-#define VISITS 8
-#define STOCK 12
+#define TYPES 6                         // ประเภทอารมณ์
+#define VISITS 8                        // ลูกค้าต่อวัน
+
 typedef struct {
-    int bag[TYPES];
-    int value[3];
-    int count;
+    int bag[TYPES];                     // ชนิดปุ๋ย
+    int value[3];                       // ค่าสะสมของ ใบ/ราก/เปลือก,
+    int count;                          // ใส่ปุ๋ยกี่ครั้ง
 } Plan;
 typedef struct {
-    int weather;
-    int guest[VISITS], gift[VISITS];
+    int weather;                        // index 0=พายุ, 1=แล้ง, 2=แมลง
+    int guest[VISITS], gift[VISITS];   
 } Day;
 typedef struct {
-    double growth, balance, weatherScore;
-    int missing[3], health;
-    int perfect;
+    double growth, balance, weatherScore;   // คะแนนรวม 100 / growth 30 / balance 40 / weatherScore 30
+    int missing[3], health;               
+    int perfect;                         
 } Result;
 typedef struct {
-    int type;
-    const char *name, *story, *clarify, *reply;
+    int type;                           // 0-1 ใบ 2-3 ราก 4-5 เปลือก
+    const char *name, *story, *clarify, *reply; 
     const char *question, *otherQuestion, *otherReply, *listenAction;
 } Story;
 const Story stories[] = {
@@ -109,75 +109,98 @@ const Story stories[] = {
      "อาจจะเยอะนะ เห็นหน้าดินแห้งก็เติม ไม่ได้ดูข้างล่างเลย\n  พูดแล้วอยากกลับไปยกถาดดู แต่ถ้าเน่าหมดก็คงเสียดายอีก",
      "คุณช่วยหลิววางถาดบนพื้น เธอเช็ดมือแล้วนั่งลง"}
 };
-const char crystal[][64] = {"สุข","ภูมิใจ","เศร้า","กลัว","โกรธ","ผิดหวัง"};
+const char crystal[][64] = {"สุข","ภูมิใจ","เศร้า","กลัว","โกรธ","ผิดหวัง"}; 
 const char part[][64] = {"ใบและดอก","ราก","เปลือก"};
 const char weather[][64] = {"พายุ","แล้ง","แมลง"};
 const char forecast[][512] = {
  "คืนนี้มีพายุ ลมทำให้ต้นล้มและกิ่งเสียหาย\n  ราก: อย่างน้อย 30 และไม่น้อยกว่าใบ\n  เปลือก: อย่างน้อย 20 และไม่น้อยกว่าครึ่งหนึ่งของใบ",
  "คืนนี้แล้ง รากต้องส่งน้ำให้ใบ\n  ราก: อย่างน้อย 30 และไม่น้อยกว่าใบ",
  "คืนนี้มีแมลง เปลือกช่วยป้องกันต้นไม้\n  เปลือก: อย่างน้อย 30 และไม่น้อยกว่าใบ"};
+
+ /* ชื่อผสมของผลึก */
 const char *mix_names[6][6]={
   {0,0,"อบอุ่นใจ","กล้าหาญ","มุ่งมั่น","มีหวัง"},
   {0,0,"ยอมรับตัวเอง","เชื่อมั่นในตัวเอง","เคารพตัวเอง","หนักแน่น"},
   {0,0,0,0,"ฮึดสู้","เห็นอกเห็นใจ"},
   {0,0,0,0,"เด็ดเดี่ยว","ทำใจยอมรับ"}};
+
+//สลับผลึกหลักสองชิ้นเพื่อให้ mix_names[น้อย][มาก] 
 const char *recipe(int a,int b) {
  if (a <= b) return mix_names[a][b];
  return mix_names[b][a];
 }
+
+/* คืนค่าที่มากกว่า */
 int larger(int a, int b) {
     if (a>b) return a;
     return b;
 }
+
+/* คืนค่าที่น้อยกว่า */
 int smaller(int a, int b) {
     if (a<b) return a;
     return b;
 }
+
+/* เพดานเงื่อนไขที่จะ Perfect score ส่วนต่างๆ (ใบ/ราก/เปลือก) ของแต่ละสภาพอากาศ (0=พายุ, 1=แล้ง, 2=แมลง) */
 const int challenge[3][3]={{20,40,30},{30,40,20},{30,20,40}};
+
+/* เช็คว่าผู้เล่นผ่าน challenge ของวันนั้นหรือไม่ (เอาไปเช็ค Perfect) 0 = ไม่ผ่าน, 1 = ผ่าน */
 int challenge_met(const int value[3], int weather_type) {
     for (int i=0;i<3;i++)
         if (value[i]<challenge[weather_type][i]) return 0;
     return 1;
 }
+
+/* คำนวณคะแนน 3 ด้าน growth, balance, weatherScore และ health ของต้นกล้า คืนเป็น struct Result */
+/* รับคะแนนของใบ/ราก/เปลือก และ index ของสภาพอากาศ (0=พายุ, 1=แล้ง, 2=แมลง) */
 Result evaluate(const int v[3],int w) {
- Result r={0};
- int low=v[0];
- double progress=1.0;
- for(int i=0;i<3;i++) {
-  low=smaller(low,v[i]);
-  r.growth+=smaller(v[i],challenge[w][i])*10.0/challenge[w][i];
-  double ratio=(double)v[i]/challenge[w][i];
-  if (ratio<progress) progress=ratio;
- }
- int rootGoal = 0, barkGoal = 0;
- if (w == 0 || w == 1) rootGoal = larger(30, v[0]);
- if (w == 0) barkGoal = larger(20, v[0] / 2);
- if (w == 2) barkGoal = larger(30, v[0]);
- r.missing[1] = larger(0, rootGoal - v[1]);
- r.missing[2] = larger(0, barkGoal - v[2]);
- r.health=larger(0,100-2*(r.missing[1]+r.missing[2]));
- if (low<10) r.health=0;
- r.weatherScore=.3*r.health;
- r.perfect=challenge_met(v,w) && r.health==100;
- r.balance=40*progress;
- return r;
+    Result r={0};
+    int low=v[0];                                                       // เซ็ทไว้เตรียมเอาไปหา minimum ของใบ/ราก/เปลือกใน ลูปหาคะแนน growth 
+    double progress=1.0;
+    /* หาคะแนน growth (เต็ม 30) คำนวณจากสัดส่วนของใบ/ราก/เปลือกที่ได้เทียบกับ challenge ของวันนั้น แต่ละส่วนได้ไม่เกิน 10 คะแนน */
+    for(int i=0;i<3;i++) {
+    low=smaller(low,v[i]); 
+    r.growth+=smaller(v[i],challenge[w][i])*10.0/challenge[w][i];       // smaller() เพื่อให้คะแนนไม่ทะลุ 10 แต้มต่อส่วน
+    double ratio=(double)v[i]/challenge[w][i];                          // คำนวณสัดส่วนของใบ/ราก/เปลือกที่ได้เทียบกับ challenge ของวันนั้น
+    if (ratio<progress) progress=ratio;                                 // เก็บสัดส่วนที่น้อยที่สุดของใบ/ราก/เปลือก เพื่อใช้คำนวณ balance score 
+    }
+    /* คำนวณเกณฑ์คะแนนรากและเปลือกที่ต้องถึง นอกจากเงื่อนไขสภาพอากาศ คะแนนแต่ละส่วนต้องมากกว่าใบ(v[0])หรือครึ่งหนึ่งของใบเสมอ */
+     int rootGoal = 0, barkGoal = 0;
+     if (w == 0 || w == 1) rootGoal = larger(30, v[0]);
+     if (w == 0) barkGoal = larger(20, v[0] / 2);
+     if (w == 2) barkGoal = larger(30, v[0]);
+    /* คำนวณค่าที่ขาดของรากและเปลือก (larger เพื่อไม่ให้ค่าติดลบ) */
+     r.missing[1] = larger(0, rootGoal - v[1]);
+     r.missing[2] = larger(0, barkGoal - v[2]);
+    /* คำนวณ health ของต้นกล้า (เต็ม 100) โดยลดลง 2 คะแนนต่อส่วนที่ขาดของรากและเปลือก */
+     r.health=larger(0,100-2*(r.missing[1]+r.missing[2]));
+     /* สรุปและใส่ค่าคะแนนแต่ละส่วน */
+     if (low<10) r.health=0; //ถ้าต่ำกว่า 10 คะแนน ต้นกล้าเดรดทันที
+     r.weatherScore=.3*r.health;
+     r.perfect=challenge_met(v,w) && r.health==100;
+     r.balance=40*progress;
+    return r;
 }
 
-/* Each group has four characters. Pick distinct guests within each group. */
+/* กลุ่มปกติ 5 ชิ้น (3 คน), กลุ่มขาด 2 ชิ้น (2 คน) = ลูกค้า 8 คน ชิ้น*/
 void new_day(Day *day) {
-    day->weather=rand()%3;
-    int scarce=day->weather==2 ? 2 : 1;
+    day->weather=rand()%3; // สุ่มสภาพอากาศ
+    const int giftsNormal[3]={2,2,1}; // กลุ่มปกติ รวม 5
+    const int giftsScarce[2]={1,1};   // กลุ่มขาด รวม 2
+    const int scarceGroup[3]={1,1,2}; // กลุ่มขาด<->ส่วนที่ขาด พายุ=ราก(1), แล้ง=ราก(1), แมลง=เปลือก(2)
+    int scarce=scarceGroup[day->weather];
     int at=0;
     for (int g=0;g<3;g++) {
-        int first=rand()%4;
-        int guests=g==scarce ? 2 : 3;
+        int first=rand()%4; // สุ่ม index ลูกค้าคนแรก
+        int guests=g==scarce ? 2 : 3; // กลุ่มขาดมีลูกค้า 2 คน กลุ่มปกติมี 3 คน
         for (int i=0;i<guests;i++) {
-            day->guest[at]=4*g+(first+i)%4;
-            day->gift[at++]=(g!=scarce && i<2) ? 2 : 1;
+            day->guest[at]=4*g+(first+i)%4; // เลือกจาก 4 คนในกลุ่มแบบวงกลม 
+            day->gift[at++]=(g==scarce) ? giftsScarce[i] : giftsNormal[i]; // ผลึกที่ลูกค้าคนนี้ให้
         }
     }
-    for (int i=VISITS-1;i>0;i--) {
-        int j=rand()%(i+1);
+    for (int i=VISITS-1;i>0;i--) { // Fisher–Yates shuffle
+        int j=rand()%(i+1); 
         int id=day->guest[i], gift=day->gift[i];
         day->guest[i]=day->guest[j];
         day->gift[i]=day->gift[j];
@@ -185,6 +208,7 @@ void new_day(Day *day) {
         day->gift[j]=gift;
     }
 }
+
 const char pictures[6][8][120]={
     {
         "",
@@ -247,6 +271,7 @@ const char pictures[6][8][120]={
         "            ⢱⠘⢰⠃"
     }
 };
+
 void draw_frame(const Plan *p, int frame, const Result *morning) {
     int image=0;
     if (frame==1) image=1;
@@ -291,6 +316,7 @@ void wait_enter(void) {
     do { c=getchar(); } while (c!='\n' && c!=EOF);
     if (c==EOF) inputEnded=1;
 }
+
 void grow_tree(const Plan *p) {
     printf("\nสวนหลังร้าน\n");
     if (!p->count) {
@@ -303,7 +329,7 @@ void grow_tree(const Plan *p) {
             p->value[1]<30 && p->value[2]<30) continue;
         if (frame==4 && p->value[0]<30) continue;
         if (shown) {
-            printf("กด Enter เพื่อดูต้นไม้โตต่อ\n");
+            printf("กด [Enter] เพื่อดูต้นไม้โตต่อ\n");
             wait_enter();
             if (inputEnded) return;
         }
@@ -311,15 +337,19 @@ void grow_tree(const Plan *p) {
         shown=1;
     }
 }
+
+// ui แสดงหัวข้อ
 void heading(const char *title) {
     printf("\n  ----------------------------------------------------\n");
     printf("  %s\n", title);
     printf("  ----------------------------------------------------\n");
 }
+
+/* เซ็ต range ค่าที่ผู้เล่นเลือกได้ */
 int choose(int low, int high) {
     char line[100], extra;
     int answer;
-    for (;;) {
+    for (;;) { // ลูปจนกว่าจะได้ค่าที่ถูกต้อง
         printf("\n  เลือก > ");
         fflush(stdout);
         if (!fgets(line, sizeof line, stdin)) {
@@ -339,6 +369,7 @@ int choose(int low, int high) {
         printf("เลือกเลข %d ถึง %d แล้วกด Enter\n", low, high);
     }
 }
+
 const char *faces[]={
     "     ⣀⣠⠴⠶⠤⣄⡀\n   ⢠⠞⢁⣀⣀⣀⡀⠙⢦\n   ⡿⠞⠉     ⠉⠳⣿\n   ⢿  ⌒    ⌒  ⡿\n    ⢳⡀  ⌣   ⡴⠃\n     ⠈⠓⠶⠶⠚⠁\n   ⣠⠖⠋⢹⣀⡏⠙⠲⣄\n  ⡼    ⢸⣿⡇    ⢧\n",
     "       ⣠⣾⣿⣶⣤\n    ⣠⣾⠿⠋⠉⠛⢻⡄\n   ⢸⠏ ⣀⡀  ⣀⡀ ⡇\n   ⢸   ⠿   ⠿  ⡇\n    ⢧    ⠂   ⡼\n    ⠈⣷⣄⠛⠛⣠⣾⠁\n  ⣠⠞⠋⢻⣉⣉⡟⠙⠳⣄\n ⢰⠃ ⢸⠈⠛⠛⠁⡇  ⠘⡆\n",
@@ -353,6 +384,7 @@ const char *faces[]={
     "      ⣤⣤⣤⣤\n    ⣼⣿⣿⣿⣿⣷\n    ⣿⠟⠉⠉⠻⣿\n   ⢀⡏ ⠒  ⠒ ⢹⡀\n   ⠘⣇    ⠂  ⣸⠃\n    ⠘⢧ ⠒⠒ ⡼⠃\n      ⠘⠳⠞⠃\n   ⣠⠞⠃⣿⣿⠘⠳⣄\n",
     "    ⣀⡤⠶⠶⠶⢤⣀\n   ⢠⣿⣿⣿⣿⣿⣿⣦\n  ⠾⠿⠿⠿⠿⠿⠿⠿⠷\n    ⢸  ⠂  ⠂ ⡇\n    ⠈⢧   ⠃ ⡼⠁\n      ⠙⢦⣀⡴⠋⣤\n       ⢸⠉⡇  ⠿\n    ⣠⠞⢸⣿⡇⠳⣄\n",
 };
+
 void meet_customers(const Day *day, Plan *plan) {
     const char *help[]={
         "เล่าต่อสิ ฟังอยู่", "ยังมีเรื่องอะไรอีกไหม ดูท่าจะยังเล่าไม่หมด",
@@ -410,15 +442,18 @@ void show_aunt_ing(void) {
 }
 
 void inventory(const Plan *p) {
-    for (int i=0;i<TYPES;i++) printf("  [%d] %s (%d ชิ้น) → %s +10 เมื่อใช้ตรง\n",i+1,crystal[i],p->bag[i],part[i/2]);
+    for (int i=0;i<TYPES;i++) printf("  [%d] ผลึก %s (%d ชิ้น) → %s +10 เมื่อใช้ตรง\n",i+1,crystal[i],p->bag[i],part[i/2]);
 }
-void add_fertilizer(Plan *p, int mixing) {
+
+void add_fertilizer(Plan *p, int mixing) { // 0-1 mixing รับมาจาก planting 
     inventory(p);
     printf("เลือกผลึกชิ้นแรก หรือ 0 เพื่อกลับโต๊ะปลูก\n");
     int a=choose(0,TYPES)-1;
     if (a<0) return;
-    int g=a/2, limit=p->bag[a], b=-1;
-    if (mixing) {
+
+    int b=-1; // เซ็ตติดลบกรณีใส่ปุ๋ยหลักอย่างเดียวไม่ผสม
+
+    if (mixing) { 
         printf("เลือกผลึกชิ้นที่สอง หรือ 0 เพื่อกลับโต๊ะปลูก\n");
         b=choose(0,TYPES)-1;
         if (b<0) return;
@@ -426,21 +461,25 @@ void add_fertilizer(Plan *p, int mixing) {
             printf("ผลึกสองชิ้นนี้อยู่กลุ่มเดียวกัน จึงผสมกันไม่ได้\n");
             return;
         }
-        g=3-a/2-b/2;
-        limit=smaller(limit,p->bag[b]);
-        printf("%s + %s = %s → %s +10\n",crystal[a],crystal[b],recipe(a,b),part[g]);
     }
+
+    int g = mixing ? 3-a/2-b/2 : a/2; // กลุ่มที่จะได้คะแนน
+    int limit  = mixing ? smaller(p->bag[a],p->bag[b]) : p->bag[a]; // ใช้ได้สูงสุดกี่ชุด
+    if (mixing) printf("%s + %s = %s → %s +10\n",crystal[a],crystal[b],recipe(a,b),part[g]);
+
     if (!limit) {
         printf("ผลึกไม่พอ ลองเลือกชนิดอื่น\n");
         return;
     }
-    printf("ใช้กี่ชุด? 1–%d หรือ 0 เพื่อยกเลิก\n",limit);
+
+    printf("ใช้กี่ชุด? 1–%d (พิมพ์ %d เพื่อใช้ทั้งหมด) หรือ 0 เพื่อยกเลิก\n",limit,limit);
     int n=choose(0,limit);
     p->bag[a]-=n;
     if (b>=0) p->bag[b]-=n;
     p->value[g]+=10*n;
     p->count+=n;
 }
+
 void planting(const Day *day, Plan *p) {
     Plan original=*p;
     while (!inputEnded) {
@@ -450,26 +489,33 @@ void planting(const Day *day, Plan *p) {
             printf("  %s: %d / เป้าออกดอก %d\n",part[i],p->value[i],challenge[day->weather][i]);
         if (p->count) {
             Result r=evaluate(p->value,day->weather);
-            printf("  คาดการณ์: %s | สุขภาพ %d/100 | ออกดอก %s\n",
-                   r.health ? "รอด" : "ไม่รอด",r.health,r.perfect ? "ได้" : "ยังไม่ได้");
+            printf("  คาดการณ์: %s | สุขภาพ %d/100 | ออกดอก %s", r.health ? "รอด" : "ไม่รอด",r.health,r.perfect ? "ได้" : "ยังไม่ได้");
         }
+        printf("\n  ----------------------------------------------------\n");
+        printf("  ผลึก:");
+        for (int g=0;g<3;g++)
+        printf(" %s[%s %d %s %d]",part[g],crystal[2*g],p->bag[2*g],crystal[2*g+1],p->bag[2*g+1]);
+        printf("\n  ----------------------------------------------------\n");
         printf("  [1] ใส่ปุ๋ย  [2] ผสมปุ๋ย  [3] คืนผลึกทั้งหมด  [4] ปลูกและปิดร้าน\n  [5] ดูสูตรผสมปุ๋ย\n");
-        int action=choose(1,5);
-        if (action==5) heading("สูตรผสมปุ๋ย (ยังไม่ใช้ผลึก)");
-        for (int a=0;action==5 && a<TYPES;a++)
-            for (int b=a+1;b<TYPES;b++) if (recipe(a,b))
-                printf("%s + %s = %s → %s +10\n",crystal[a],crystal[b],recipe(a,b),part[3-a/2-b/2]);
-        if (action==1 || action==2) add_fertilizer(p,action==2);
-        if (action==3) {
+        switch (choose(1,5)) {
+        case 1: add_fertilizer(p,0); break;
+        case 2: add_fertilizer(p,1); break;
+        case 3:
             *p=original;
             printf("คืนผลึกทั้งหมดแล้ว\n");
-        }
-        if (action==4) {
+            break;
+        case 4:
             printf("[1] ยืนยันปลูก  [0] กลับไปจัดแผน\n");
             if (choose(0,1)) return;
+            break;
+        case 5: heading("สูตรผสมปุ๋ย (ยังไม่ใช้ผลึก)");
+            for (int a=0;a<TYPES;a++)
+                for (int b=a+1;b<TYPES;b++) 
+                    if (recipe(a,b)) printf("%s + %s = %s → %s +10\n",crystal[a],crystal[b],recipe(a,b),part[3-a/2-b/2]); break;
         }
     }
 }
+
 const char *ending(const Plan *p, Result r, int weather_type) {
     if (p->count==0)
         return "วันนี้ยังไม่ได้ใช้ผลึก เมล็ดเลยยังไม่โตนะลูก\n"
@@ -503,6 +549,7 @@ const char *ending(const Plan *p, Result r, int weather_type) {
     return "ต้นนี้ผ่านคืนนี้มาได้ดีแล้ว แค่ยังโตไม่ครบตามเงื่อนไขออกดอก\n"
            "  วันนี้ยังไม่ถึงเป้าก็ไม่ได้แปลว่าที่ทำมาสูญเปล่า เก็บสิ่งที่ได้ลองไปใช้รอบหน้านะ";
 }
+
 void morning(const Day *day,const Plan *p) {
     const char *event[]={"ฝนสาดเข้าที่กิ่ง ยอดเอนตามแรงลม","ลมร้อนพัดจนผิวดินเริ่มแตกระแหง","แมลงไต่จากโคนต้นขึ้นไปหายอดอ่อน"};
     Result r=evaluate(p->value,day->weather);
@@ -558,7 +605,7 @@ void how_to_play(void) {
 
 int main(void) {
 #ifdef _WIN32
-    system("chcp 65001 >nul");
+    system("chcp 65001 >nul"); //ไทย
 #endif
     srand((unsigned)time(NULL));
     heading("Grow a (Feeling) Garden");
@@ -574,6 +621,7 @@ int main(void) {
         if (action==1) break;
         how_to_play();
     }
+
     while (!inputEnded) {
         Day day={0};
         Plan plan={0};
